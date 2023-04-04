@@ -10,7 +10,11 @@ module Sidekiq
       end
 
       def safe_execute(worker, args)
-        thread = Thread.new { yield }
+        thread = Thread.new do
+          Rails.application.executor.wrap do
+            yield
+          end
+        end
         # While the thread has not terminated
         while thread.status
           if @@shutting_down
